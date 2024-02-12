@@ -16,7 +16,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\App;
-use Slim\Exception\HttpException;
 use Slim\Factory\AppFactory;
 use Slim\Handlers\Strategies\RequestResponseArgs;
 use Slim\Routing\RouteCollectorProxy;
@@ -24,7 +23,6 @@ use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\Entity\SiteInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Frontend\Controller\ErrorController;
 
 /**
  * Checks the site configuration if there are any routes configured that Slim could handle.
@@ -83,27 +81,9 @@ class SlimInitiator implements MiddlewareInterface
             // Typoscript condition matcher, or LocalizationUtility, need to access the request globally
             $GLOBALS['TYPO3_REQUEST'] = $request;
 
-            try {
-                // We do not call $app->run() but $app->handle()
-                return $app->handle($request);
-            } catch (HttpException $e) {
-                $errorController = GeneralUtility::makeInstance(ErrorController::class);
-
-                switch ($e->getCode()) {
-                    case 503:
-                        return $errorController->unavailableAction($request, $e->getMessage());
-                    case 500:
-                        return $errorController->internalErrorAction($request, $e->getMessage());
-                    case 404:
-                        return $errorController->pageNotFoundAction($request, $e->getMessage());
-                    case 403:
-                        return $errorController->accessDeniedAction($request, $e->getMessage());
-                    default:
-                        throw $e;
-                }
-            }
+            // We do not call $app->run() but $app->handle()
+            return $app->handle($request);
         }
-
         // nothing found, continue with TYPO3
         return $handler->handle($request);
     }
@@ -134,8 +114,8 @@ class SlimInitiator implements MiddlewareInterface
             } else {
                 $methods = array_map(
                     function ($method) {
-                        return strtoupper($method);
-                    },
+                    return strtoupper($method);
+                },
                     $details['methods']
                 );
                 $route = $collector->map($methods, $details['route'], $details['callback']);

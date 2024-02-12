@@ -50,7 +50,7 @@ class ExtbaseBridge implements MiddlewareInterface
         }
 
         $request = $this->bootFrontend($request);
-        $this->bootExtbase($request);
+        $this->bootExtbase();
 
         return $handler->handle($request);
     }
@@ -105,20 +105,12 @@ class ExtbaseBridge implements MiddlewareInterface
         return $request;
     }
 
-    protected function bootExtbase(ServerRequestInterface $request): void
+    protected function bootExtbase(): void
     {
-        if (version_compare($this->typo3Version, '12.4', '>=')) {
-            GeneralUtility::makeInstance(Bootstrap::class)->initialize([
-               'extensionName' => 'slimphp',
-               'vendorName' => 'B13',
-               'pluginName' => 'slimphp',
-           ], $request);
-        }else {
-            GeneralUtility::makeInstance(Bootstrap::class)->initialize([
-               'extensionName' => 'slimphp',
-               'vendorName' => 'B13',
-               'pluginName' => 'slimphp',
-           ]);
-        }
+        GeneralUtility::makeInstance(Bootstrap::class)->initialize([
+            'extensionName' => 'slimphp',
+            'vendorName' => 'B13',
+            'pluginName' => 'slimphp',
+        ]);
     }
 }
